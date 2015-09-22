@@ -132,6 +132,19 @@ class Client(object):
         return self.request(path, method='DELETE', params=params, headers=headers,
                             success=success, retry=retry)
 
+    def ping(self):
+        """
+        Determine if it's possible to communicate with Sumo Logic.
+
+        :return: Whether or not it's possible to establish a connection to Sumo Logic
+        :rtype: bool
+        """
+        try:
+            self.get('collectors')
+            return True
+        except Exception:
+            return False
+
     def get_collectors(self,  limit=1000, ids=None):
         """
         Retrieve a list of collectors.
