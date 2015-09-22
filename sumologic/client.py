@@ -3,6 +3,7 @@
 
 import os
 import configparser
+import time
 
 import requests
 
@@ -72,7 +73,7 @@ class Client(object):
         self.auth = (access_id, access_key)
 
     def request(self, path, method='GET', params=None, headers=None,
-                data=None):
+                data=None, retry=True):
         uri = '{base}/{version}/{path}'.format(base=self.api_base,
                                                version=self.api_version,
                                                path=path)
@@ -93,6 +94,11 @@ class Client(object):
             r = self.session.delete(**args)
         else:
             raise sumologic.exceptions.InvalidHTTPMethodError()
+
+        while r.status_code != 200:
+            if not retry:
+                break
+            time.sleep(5)
 
         if r.status_code != 200:
             raise sumologic.exceptions.HTTPError()
