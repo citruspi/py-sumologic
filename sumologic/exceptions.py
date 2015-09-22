@@ -16,3 +16,7 @@ class InvalidHTTPResponseError(Exception):
 
 class InvalidJSONResponseError(Exception):
     pass
+
+
+class InvalidCollectorIdError(Exception):
+    pass
