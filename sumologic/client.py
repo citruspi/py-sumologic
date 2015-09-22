@@ -73,7 +73,8 @@ class Client(object):
         self.auth = (access_id, access_key)
 
     def request(self, path, method='GET', params=None, headers=None,
-                data=None, retry=True):
+                data=None, success=lambda r: r.status_code == 200,
+                retry=True):
         uri = '{base}/{version}/{path}'.format(base=self.api_base,
                                                version=self.api_version,
                                                path=path)
@@ -95,12 +96,12 @@ class Client(object):
         else:
             raise sumologic.exceptions.InvalidHTTPMethodError()
 
-        while r.status_code != 200:
+        while not success(r):
             if not retry:
                 break
             time.sleep(5)
 
-        if r.status_code != 200:
+        if not success(r):
             raise sumologic.exceptions.HTTPError()
 
         return r
