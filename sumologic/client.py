@@ -3,7 +3,7 @@
 
 import os
 import configparser
-import json
+import json.decoder
 import time
 
 import requests
@@ -28,7 +28,6 @@ class Client(object):
 
         self.session.auth = self.auth
         self.session.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-
 
     def load_authentication(self, access_id=None, access_key=None):
         """
