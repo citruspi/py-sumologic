@@ -8,3 +8,7 @@ class HTTPError(Exception):
 
 class InvalidHTTPMethodError(Exception):
     pass
+
+
+class InvalidHTTPResponseError(Exception):
+    pass
