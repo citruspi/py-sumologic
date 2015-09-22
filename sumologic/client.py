@@ -3,6 +3,7 @@
 
 import os
 import configparser
+import json
 import time
 
 import requests
@@ -103,5 +104,10 @@ class Client(object):
 
         if not success(r):
             raise sumologic.exceptions.HTTPError()
+
+        try:
+            r.json()
+        except json.decoder.JSONDecodeError:
+            raise sumologic.exceptions.InvalidHTTPResponseError()
 
         return r
