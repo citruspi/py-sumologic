@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import configparser
 
 import requests
 
@@ -26,11 +27,12 @@ class Client(object):
         self.session.auth = self.auth
         self.session.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
+
     def load_authentication(self, access_id=None, access_key=None):
         """
         Load the Access ID and Access Key to be used for authentication.
         The arguments will be checked first, followed by environment
-        variables.
+        variables and finally the file at "~/.sumologic."
 
         :param access_id: The Access ID to connect with.
         :type access_id: basestring
@@ -47,4 +49,24 @@ class Client(object):
             access_key = os.environ.get('SUMOLOGIC_ACCESS_KEY', None)
 
         if access_id is None or access_key is None:
-            raise sumologic.exceptions.AuthenticationError()
+            config = configparser.ConfigParser()
+            config.read(os.path.expanduser('~/.sumologic'))
+
+            try:
+                credentials = config['credentials']
+            except KeyError:
+                raise sumologic.exceptions.AuthenticationError()
+
+            if access_id is None:
+                try:
+                    access_id = credentials['access_id']
+                except KeyError:
+                    raise sumologic.exceptions.AuthenticationError()
+
+            if access_key is None:
+                try:
+                    access_key = credentials['access_key']
+                except KeyError:
+                    raise sumologic.exceptions.AuthenticationError()
+
+        self.auth = (access_id, access_key)
