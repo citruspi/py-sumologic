@@ -111,3 +111,23 @@ class Client(object):
             raise sumologic.exceptions.InvalidHTTPResponseError()
 
         return r
+
+    def get(self, path, params=None, headers=None,
+            success=lambda r: r.status_code == 200, retry=True):
+        return self.request(path, method='GET', params=params, headers=headers,
+                            success=success, retry=retry)
+
+    def post(self, path, data=None, headers=None,
+             success=lambda r: r.status_code == 200, retry=True):
+        return self.request(path, method='POST', data=data, headers=headers,
+                            success=success, retry=retry)
+
+    def put(self, path, data=None, headers=None,
+            success=lambda r: r.status_code == 200, retry=True):
+        return self.request(path, method='PUT', data=data, headers=headers,
+                            success=success, retry=retry)
+
+    def delete(self, path, params=None, headers=None,
+               success=lambda r: r.status_code == 200, retry=True):
+        return self.request(path, method='DELETE', params=params, headers=headers,
+                            success=success, retry=retry)
