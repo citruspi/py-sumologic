@@ -12,3 +12,7 @@ class InvalidHTTPMethodError(Exception):
 
 class InvalidHTTPResponseError(Exception):
     pass
+
+
+class InvalidJSONResponseError(Exception):
+    pass
