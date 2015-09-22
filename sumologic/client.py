@@ -75,6 +75,27 @@ class Client(object):
     def request(self, path, method='GET', params=None, headers=None,
                 data=None, success=lambda r: r.status_code == 200,
                 retry=True):
+        """
+        Perform an HTTP request and return its response.
+
+        :param path: The path to request.
+        :param method: The HTTP method to use.
+        :param params: URL parameters to include with GET and DELETE
+            requests.
+        :param headers: HTTP headers to include with requests.
+        :param data: Body data to include with POST and PUT requests.
+        :param success: A callable which accepts a response and
+            determines whether or not it was successful.
+        :param retry: Whether or not to retry unsuccessful requests.
+        :raises sumologic.exceptions.InvalidHTTPMethodError: When an
+            invalid HTTP method is provided.
+        :raises sumologic.exceptions.HTTPError: When the request isn't
+            successful.
+        :raises sumologic.exceptions.InvalidHTTPResponseError: When a
+            response cannot be deserialized as valid JSON.
+        :return: Response from HTTP request, if successful.
+        :rtype: requests.models.Response
+        """
         uri = '{base}/{version}/{path}'.format(base=self.api_base,
                                                version=self.api_version,
                                                path=path)
