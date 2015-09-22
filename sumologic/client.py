@@ -20,3 +20,4 @@ class Client(object):
         self.session = requests.Session()
 
         self.session.auth = self.auth
+        self.session.headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
