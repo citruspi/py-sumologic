@@ -70,3 +70,31 @@ class Client(object):
                     raise sumologic.exceptions.AuthenticationError()
 
         self.auth = (access_id, access_key)
+
+    def request(self, path, method='GET', params=None, headers=None,
+                data=None):
+        uri = '{base}/{version}/{path}'.format(base=self.api_base,
+                                               version=self.api_version,
+                                               path=path)
+        args = {'url': uri, 'headers': headers}
+
+        if method in ['GET', 'DELETE']:
+            args['params'] = params
+        elif method in ['POST', 'PUT']:
+            args['data'] = data
+
+        if method == 'GET':
+            r = self.session.get(**args)
+        elif method == 'POST':
+            r = self.session.post(**args)
+        elif method == 'PUT':
+            r = self.session.put(**args)
+        elif method == 'DELETE':
+            r = self.session.delete(**args)
+        else:
+            raise sumologic.exceptions.InvalidHTTPMethodError()
+
+        if r.status_code != 200:
+            raise sumologic.exceptions.HTTPError()
+
+        return r
