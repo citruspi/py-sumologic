@@ -131,3 +131,44 @@ class Client(object):
                success=lambda r: r.status_code == 200, retry=True):
         return self.request(path, method='DELETE', params=params, headers=headers,
                             success=success, retry=retry)
+
+    def get_collectors(self,  limit=1000, ids=None):
+        """
+        Retrieve a list of collectors.
+
+        :param limit: The number of collectors to ask for in each
+            request. If you're looking for a specific server, it might
+            makes sense to only retrieve a few collectors. However, if
+            you have a lot of collectors and want them all, it would
+            make sense to set the limit super high and get them all in
+            a single request.
+        :type limit: int
+        :param ids: The IDs of the collectors to be retrieved. If the
+            argument isn't set, all of the collectors will be returned.
+        :return: A list of dicts representing collectors.
+        :rtype: generator
+        :raises sumologic.exceptions.InvalidJSONResponseError: When it
+            fails to retrieve necessary data from the JSON response.
+        """
+        offset = 0
+
+        while True:
+            r = self.get('collectors', params={
+                'limit': limit,
+                'offset': offset
+            })
+
+            try:
+                if len(r.json()['collectors']) == 0:
+                    break
+
+                for collector in r.json()['collectors']:
+                    if ids is None:
+                        yield collector
+                    elif collector['id'] in ids:
+                        ids.remove(collector['id'])
+                        yield collector
+            except KeyError:
+                raise sumologic.exceptions.InvalidJSONResponseError()
+
+            offset += limit
