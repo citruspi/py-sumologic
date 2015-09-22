@@ -172,3 +172,6 @@ class Client(object):
                 raise sumologic.exceptions.InvalidJSONResponseError()
 
             offset += limit
+
+        if ids is not None and len(ids) > 0:
+            raise sumologic.exceptions.InvalidCollectorIdError(', '.join(ids))
