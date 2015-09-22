@@ -4,3 +4,7 @@ class AuthenticationError(Exception):
 
 class HTTPError(Exception):
     pass
+
+
+class InvalidHTTPMethodError(Exception):
+    pass
