@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import requests
+
 
 class Client(object):
 
@@ -14,3 +16,7 @@ class Client(object):
         :param access_key: The Access Key to connect with
         """
         self.auth=(access_id, access_key)
+
+        self.session = requests.Session()
+
+        self.session.auth = self.auth
