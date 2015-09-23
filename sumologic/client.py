@@ -9,7 +9,7 @@ import time
 import requests
 
 import sumologic.exceptions
-
+import sumologic.collector
 
 class Client(object):
 
@@ -197,10 +197,10 @@ class Client(object):
 
                 for collector in r.json()['collectors']:
                     if ids is None:
-                        yield collector
+                        yield sumologic.collector.Collector(collector['id'], self)
                     elif collector['id'] in ids:
                         ids.remove(collector['id'])
-                        yield collector
+                        yield sumologic.collector.Collector(collector['id'], self)
             except KeyError:
                 raise sumologic.exceptions.InvalidJSONResponseError()
 
