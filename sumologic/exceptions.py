@@ -20,3 +20,7 @@ class InvalidJSONResponseError(Exception):
 
 class InvalidCollectorIdError(Exception):
     pass
+
+
+class AttemptedMutationOfImmatubleAttributeError(Exception):
+    pass
