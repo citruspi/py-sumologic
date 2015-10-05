@@ -4,29 +4,83 @@ import sumologic.exceptions
 class Collector(object):
     client = None
     id_ = None
-    _source = None
+    _source = {}
     etag = None
 
-    expected_attributes = [
-        'id',
-        'name',
-        'description',
-        'category',
-        'hostName',
-        'timeZone',
-        'ephemeral',
-        'targetCpu',
-        'collectorType',
-        'collectorVersion',
-        'alive',
-        'cutoffTimestamp',
-        'cutoffRelativeTime',
-        'sources'
-    ]
+    attributes = {
+        'id': {
+            'type': int,
+            'mutable': False
+        },
+        'name': {
+            'type': str,
+        },
+        'description': {
+            'type': str
+        },
+        'category': {
+            'type': str
+        },
+        'hostName': {
+            'type': str
+        },
+        'timeZone': {
+            'type': str
+        },
+        'ephemeral': {
+            'type': bool
+        },
+        'targetCpu': {
+            'type': int
+        },
+        'collectorType': {
+            'type': str,
+            'mutable': False
+        },
+        'collectorVersion': {
+            'type': str,
+            'mutable': False
+        },
+        'alive': {
+            'type': bool,
+            'mutable': False,
+            'transient': True
+        },
+        'cutoffTimestamp': {
+            'type': int,
+        },
+        'cutoffRelativeTime': {
+            'type': str
+        },
+        'sources': {
+            'type': list,
+            'mutable': False
+        }
+    }
 
-    def __init__(self, id, client):
+    installable_collector_attributes = {
+        'osName': {
+            'type': str,
+            'mutable': False
+        },
+        'osVersion': {
+            'type': str,
+            'mutable': False
+        },
+        'osArch': {
+            'type': str,
+            'mutable': False
+        },
+        'upTime': {
+            'type': int,
+            'mutable': False,
+            'transient': True
+        }
+    }
+
+    def __init__(self, id_, client):
         self.client = client
-        self.id_ = id
+        self.id_ = id_
 
         self.reload()
 
@@ -39,7 +93,25 @@ class Collector(object):
             raise sumologic.exceptions.InvalidHTTPResponseError()
 
         try:
-            self._source = r.json()['collector']
+            collector = r.json()['collector']
+
+            for key in self.attributes:
+                if key in collector:
+                    if isinstance(collector[key],
+                                  self.attributes[key]['type']):
+                        self._source[key] = collector[key]
+                    else:
+                        raise sumologic.exceptions.InvalidJSONResponseError()
+
+            if self._source.get("collectorType", "") == "Installable":
+                for key in self.installable_collector_attributes:
+                    if key in collector:
+                        if isinstance(collector[key],
+                                      self.installable_collector_attributes[key]['type']):
+                            self._source[key] = collector[key]
+                        else:
+                            raise sumologic.exceptions.InvalidJSONResponseError()
+
         except KeyError:
             raise sumologic.exceptions.InvalidJSONResponseError()
 
@@ -51,7 +123,7 @@ class Collector(object):
             raise sumologic.exceptions.InvalidJSONResponseError()
 
     def __getattr__(self, key):
-        if key in self.expected_attributes:
+        if key in self.attributes:
             try:
                 return self._source[key]
             except KeyError:
@@ -60,7 +132,10 @@ class Collector(object):
             super().__getattribute__(key)
 
     def __setattr__(self, key, value):
-        if key in self.expected_attributes:
-            self._source[key] = value
+        if key in self.attributes:
+            if self.attributes[key].get('mutable', False):
+                self._source[key] = value
+            else:
+                raise sumologic.exceptions.AttemptedMutationOfImmatubleAttributeError()
         else:
             super().__setattr__(key, value)
