@@ -128,6 +128,12 @@ class Collector(object):
                 return self._source[key]
             except KeyError:
                 return None
+        elif self._source.get("collectorType", "") == "Installable":
+            if key in self.installable_collector_attributes:
+                try:
+                    return self._source[key]
+                except KeyError:
+                    return None
         else:
             super().__getattribute__(key)
 
@@ -137,5 +143,11 @@ class Collector(object):
                 self._source[key] = value
             else:
                 raise sumologic.exceptions.AttemptedMutationOfImmatubleAttributeError()
+        elif self._source.get("collectorType", "") == "Installable":
+            if key in self.installable_collector_attributes:
+                if self.installable_collector_attributes[key].get('mutable', False):
+                    self._source[key] = value
+                else:
+                    raise sumologic.exceptions.AttemptedMutationOfImmatubleAttributeError()
         else:
             super().__setattr__(key, value)
