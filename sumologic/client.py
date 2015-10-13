@@ -72,9 +72,8 @@ class Client(object):
 
         self.auth = (access_id, access_key)
 
-    def request(self, path, method='GET', params=None, headers=None,
-                data=None, success=lambda r: r.status_code == 200,
-                retry=True):
+    def request(self, path, method='GET', params=None, headers=None, data=None, validate_status=True,
+                retry=lambda r: False):
         """
         Perform an HTTP request and return its response.
 
@@ -84,9 +83,10 @@ class Client(object):
             requests.
         :param headers: HTTP headers to include with requests.
         :param data: Body data to include with POST and PUT requests.
-        :param success: A callable which accepts a response and
-            determines whether or not it was successful.
-        :param retry: Whether or not to retry unsuccessful requests.
+        :param validate_status: Whether or not to call
+            r.raise_for_status()
+        :param retry: A callable that returns whether or not to retry
+            the request
         :raises sumologic.exceptions.InvalidHTTPMethodError: When an
             invalid HTTP method is provided.
         :raises sumologic.exceptions.HTTPError: When the request isn't
@@ -106,51 +106,53 @@ class Client(object):
         elif method in ['POST', 'PUT']:
             args['data'] = data
 
-        if method == 'GET':
-            r = self.session.get(**args)
-        elif method == 'POST':
-            r = self.session.post(**args)
-        elif method == 'PUT':
-            r = self.session.put(**args)
-        elif method == 'DELETE':
-            r = self.session.delete(**args)
-        else:
-            raise sumologic.exceptions.InvalidHTTPMethodError()
+        while True:
+            if method == 'GET':
+                r = self.session.get(**args)
+            elif method == 'POST':
+                r = self.session.post(**args)
+            elif method == 'PUT':
+                r = self.session.put(**args)
+            elif method == 'DELETE':
+                r = self.session.delete(**args)
+            else:
+                raise sumologic.exceptions.InvalidHTTPMethodError()
 
-        while not success(r):
-            if not retry:
+            if not retry(r):
                 break
+
             time.sleep(5)
 
-        if not success(r):
-            raise sumologic.exceptions.HTTPError()
+        if validate_status:
+            try:
+                r.raise_for_status()
+            except requests.HTTPError:
+                raise sumologic.exceptions.HTTPError(r.text)
 
         try:
             r.json()
         except json.decoder.JSONDecodeError:
-            raise sumologic.exceptions.InvalidHTTPResponseError()
+            raise sumologic.exceptions.InvalidHTTPResponseError('Response ({code}) is invalid JSON: {response}'.format(
+                code=r.status_code,
+                response=r.text))
 
         return r
 
-    def get(self, path, params=None, headers=None,
-            success=lambda r: r.status_code == 200, retry=True):
-        return self.request(path, method='GET', params=params, headers=headers,
-                            success=success, retry=retry)
+    def get(self, path, params=None, headers=None, validate_status=True, retry=lambda r: False):
+        return self.request(path, method='GET', params=params, headers=headers, validate_status=validate_status,
+                            retry=retry)
 
-    def post(self, path, data=None, headers=None,
-             success=lambda r: r.status_code == 200, retry=True):
-        return self.request(path, method='POST', data=data, headers=headers,
-                            success=success, retry=retry)
+    def post(self, path, data=None, headers=None, validate_status=True, retry=lambda r: False):
+        return self.request(path, method='POST', data=data, headers=headers, validate_status=validate_status,
+                            retry=retry)
 
-    def put(self, path, data=None, headers=None,
-            success=lambda r: r.status_code == 200, retry=True):
-        return self.request(path, method='PUT', data=data, headers=headers,
-                            success=success, retry=retry)
+    def put(self, path, data=None, headers=None, validate_status=True, retry=lambda r: False):
+        return self.request(path, method='PUT', data=data, headers=headers, validate_status=validate_status,
+                            retry=retry)
 
-    def delete(self, path, params=None, headers=None,
-               success=lambda r: r.status_code == 200, retry=True):
-        return self.request(path, method='DELETE', params=params, headers=headers,
-                            success=success, retry=retry)
+    def delete(self, path, params=None, headers=None, validate_status=True, retry=lambda r: False):
+        return self.request(path, method='DELETE', params=params, headers=headers, validate_status=validate_status,
+                            retry=retry)
 
     def ping(self):
         """
