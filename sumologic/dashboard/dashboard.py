@@ -34,3 +34,12 @@ class Dashboard(object):
     @property
     def monitors(self):
         return self._raw['dashboardMonitors'] or []
+
+    @property
+    def data(self):
+        r = self.client.get('dashboards/{id_}/data'.format(id_=self.id_))
+
+        try:
+            return r.json()['dashboardMonitorDatas']
+        except KeyError:
+            raise sumologic.exceptions.InvalidJSONResponseError()
