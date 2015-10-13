@@ -20,5 +20,8 @@ setup(
     packages=['sumologic'],
     zip_safe=False,
     include_package_date=True,
-    platforms='any'
+    platforms='any',
+    install_requires=[
+        'requests'
+    ]
 )
