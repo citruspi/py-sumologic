@@ -10,6 +10,7 @@ import requests
 
 import sumologic.exceptions
 import sumologic.collector
+import sumologic.dashboard
 
 class Client(object):
 
@@ -183,6 +184,15 @@ class Client(object):
             raise sumologic.exceptions.InvalidJSONResponseError()
         except AttributeError:
             raise sumologic.exceptions.InvalidJSONResponseError()
+
+    def get_dashboards(self, ids):
+        """
+        Retrieve dashboards.
+
+        :param ids: A list of dashboard IDs to retrieve
+        """
+        for id_ in ids:
+            yield sumologic.dashboard.Dashboard(id_, self)
 
     def get_collectors(self,  limit=1000, ids=None):
         """
