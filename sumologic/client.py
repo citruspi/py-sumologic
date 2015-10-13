@@ -165,6 +165,23 @@ class Client(object):
         except Exception:
             return False
 
+    @property
+    def dashboard_ids(self):
+        """
+        Retrieve a list of dashboard IDs.
+        """
+        r = self.get('dashboards')
+
+        try:
+            for dashboard in r.json()['dashboards']:
+                yield dashboard['id']
+        except KeyError:
+            raise sumologic.exceptions.InvalidJSONResponseError()
+        except TypeError:
+            raise sumologic.exceptions.InvalidJSONResponseError()
+        except AttributeError:
+            raise sumologic.exceptions.InvalidJSONResponseError()
+
     def get_collectors(self,  limit=1000, ids=None):
         """
         Retrieve a list of collectors.
