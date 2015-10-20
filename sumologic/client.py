@@ -185,6 +185,15 @@ class Client(object):
         except AttributeError:
             raise sumologic.exceptions.InvalidJSONResponseError()
 
+    def get_dashboard(self, id):
+        """
+        Retrieve a single dashboard.
+
+        :param id: The ID of the dashboard to retrieve.
+        """
+        for dashboard in self.get_dashboards([id]):
+            return dashboard
+
     def get_dashboards(self, ids):
         """
         Retrieve dashboards.
