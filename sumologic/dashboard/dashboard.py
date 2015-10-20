@@ -27,6 +27,10 @@ class Dashboard(object):
             raise sumologic.exceptions.InvalidJSONResponseError()
 
     @property
+    def id(self):
+        return self._raw['id']
+
+    @property
     def title(self):
         return self._raw['title']
 
